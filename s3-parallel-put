@@ -421,6 +421,14 @@ def main(argv):
     group.add_option('--processes', default=8, metavar='PROCESSES', type=int,
             help='set number of putter processes')
     parser.add_option_group(group)
+    group = OptionGroup(parser, 'AWS options')
+    group.add_option('--aws-access-key', metavar='AWS_ACCESS_KEY',
+            help='AWS access key')
+    group.add_option('--aws-secret-key', metavar='AWS_SECRET_KEY',
+            help='AWS secret key')
+    group.add_option('--aws-session-token', metavar='AWS_SESSION_TOKEN',
+            help='AWS session token')
+    parser.add_option_group(group)
     options, args = parser.parse_args(argv[1:])
     logging.basicConfig(filename=options.log_filename, level=logging.INFO + 10 * (options.quiet - options.verbose))
     logger = logging.getLogger(os.path.basename(sys.argv[0]))
@@ -440,9 +448,11 @@ def main(argv):
           calling_format = boto.s3.connection.OrdinaryCallingFormat(),
         )
     else:
+        # Use AWS access key, secret key, and session token from command line options
         connection = boto.s3.connect_to_region(options.bucket_region,
-          aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
-          aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+          aws_access_key_id=options.aws_access_key,
+          aws_secret_access_key=options.aws_secret_key,
+          security_token=options.aws_session_token,  # Add the session token here
           is_secure=True,
           host=options.host,
           calling_format = boto.s3.connection.OrdinaryCallingFormat(),
